@@ -96,40 +96,18 @@ class Fighter extends Sprite {
         this.framesElapsed = 0
         this.framesHold = 40
         this.sprites = sprites
+        this.dead = false
 
         for (const sprite in this.sprites) {
             sprites[sprite].image = new Image()
             sprites[sprite].image.src = sprites[sprite].imageSrc
         }
-
-        console.log(this.sprites)
     }
-
-    // Gonna save these cause i might need them later for
-    // seperating the hitbox and character model logic
-
-    // draw boxes
-    // draw() {
-    //     // hurtbox
-    //     c.fillStyle = this.color
-    //     c.fillRect(this.position.x, this.position.y, this.width, this.height)
-    
-    //     // hitbox
-    //     if (this.isAttacking) {
-    //         c.fillStyle = 'red'
-    //         c.fillRect(
-    //             this.hitBox.position.x,
-    //             this.hitBox.position.y,
-    //             this.hitBox.width,
-    //             this.hitBox.height
-    //         )
-    //     }
-    // }
 
     // update hurtbox location
     update() {
         this.draw()
-        this.animateFrames()
+        if (!this.dead) this.animateFrames()
 
         // hitbox position starts from starting Sprite position,
         // update it as Sprite position changes
@@ -150,8 +128,6 @@ class Fighter extends Sprite {
             this.velocity.y = 0
             this.position.y = 330
         } else this.velocity.y += gravity
-
-        console.log(this.position.y)
     }
 
     // Sprite attack
@@ -161,11 +137,20 @@ class Fighter extends Sprite {
     }
 
     takeHit() {
-        this.switchSprite('takeHit')
         this.health -= 20
+
+        if (this.health <= 0) {
+            this.switchSprite('death')
+        } else this.switchSprite('takeHit')
     }
 
     switchSprite(sprite) {
+        if (this.image === this.sprites.death.image) {
+            if (this.framesCurrent === this.sprites.death.framesMax - 1)
+                this.dead = true
+            return
+        }
+
         // override all animations with attack animation
         if (
             this.image === this.sprites.attack1.image &&
@@ -220,6 +205,13 @@ class Fighter extends Sprite {
                 if (this.image !== this.sprites.takeHit.image) {
                     this.image = this.sprites.takeHit.image
                     this.framesMax = this.sprites.takeHit.framesMax
+                    this.framesCurrent = 0
+                }
+                break;
+            case 'death':
+                if (this.image !== this.sprites.death.image) {
+                    this.image = this.sprites.death.image
+                    this.framesMax = this.sprites.death.framesMax
                     this.framesCurrent = 0
                 }
                 break;
